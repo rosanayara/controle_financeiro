@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Controle Real{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f5f6fa;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --navbar-bg: #ffffff;
+            --navbar-text: #333;
+            --shadow: rgba(0, 0, 0, 0.05);
+            --saldo-pos: #28a745;
+            --saldo-neg: #dc3545;
+            --border-color: #e9ecef;
+            --input-bg: #ffffff;
+            --input-text: #333;
+            --btn-primary: #0d6efd;
+            --btn-primary-hover: #0b5ed7;
+            --btn-outline-color: #6c757d;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #e9ecef;
+            --card-bg: #2d2d2d;
+            --navbar-bg: #2d2d2d;
+            --navbar-text: #e9ecef;
+            --shadow: rgba(255, 255, 255, 0.1);
+            --saldo-pos: #40c057;
+            --saldo-neg: #fa5252;
+            --border-color: #404040;
+            --input-bg: #3a3a3a;
+            --input-text: #e9ecef;
+            --btn-primary: #4c6ef5;
+            --btn-primary-hover: #364ee3;
+            --btn-outline-color: #a0a8b3;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .card {
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0px 4px 12px var(--shadow);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .saldo-positivo {
+            color: var(--saldo-pos);
+        }
+
+        .saldo-negativo {
+            color: var(--saldo-neg);
+        }
+
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .page-header h1 {
+            color: var(--text-color);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 250px;
+            background-color: var(--card-bg);
+            box-shadow: 2px 0 5px var(--shadow);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+        .sidebar h5 {
+            color: var(--text-color);
+        }
+
+        .sidebar .nav-link {
+            color: var(--text-color);
+            padding: 0.75rem 1rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: var(--shadow);
+            color: var(--text-color);
+        }
+
+        .main-content {
+            margin-left: 0;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.shifted {
+            margin-left: 250px;
+        }
+
+        .navbar-toggler {
+            border: none;
+            color: var(--navbar-text);
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+            outline: none;
+        }
+
+        .navbar {
+            background-color: var(--navbar-bg) !important;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-brand {
+            color: var(--navbar-text) !important;
+        }
+
+        .navbar-text {
+            color: var(--navbar-text) !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 8px 20px var(--shadow);
+        }
+
+        /* Melhorias para formulários e inputs em dark mode */
+        .form-control,
+        .form-select {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-color: var(--border-color);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-color: var(--btn-primary);
+            box-shadow: 0 0 0 0.2rem rgba(77, 110, 245, 0.25);
+        }
+
+        .form-check-input {
+            background-color: var(--input-bg);
+            border-color: var(--border-color);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--btn-primary);
+            border-color: var(--btn-primary);
+        }
+
+        .form-check-label {
+            color: var(--text-color);
+        }
+
+        /* Botões em dark mode */
+        .btn {
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--btn-primary);
+            border-color: var(--btn-primary);
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background-color: var(--btn-primary-hover);
+            border-color: var(--btn-primary-hover);
+        }
+
+        .btn-outline-danger {
+            color: #fa5252;
+            border-color: #fa5252;
+        }
+
+        [data-theme="dark"] .btn-outline-danger {
+            color: #ff8787;
+            border-color: #ff8787;
+        }
+
+        [data-theme="dark"] .btn-outline-danger:hover {
+            background-color: #ff8787;
+            border-color: #ff8787;
+            color: #ffffff;
+        }
+
+        .btn-secondary {
+            background-color: var(--btn-outline-color);
+            border-color: var(--btn-outline-color);
+        }
+
+        /* Textos em dark mode */
+        .text-muted {
+            color: #a0a8b3 !important;
+        }
+
+        [data-theme="light"] .text-muted {
+            color: #6c757d !important;
+        }
+
+        /* Badge em dark mode */
+        .badge {
+            color: var(--text-color);
+        }
+
+        .bg-dark {
+            background-color: var(--card-bg) !important;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Info box */
+        .bg-info {
+            background-color: #0dcaf0 !important;
+        }
+
+        [data-theme="dark"] .bg-info {
+            background-color: #0d8fb0 !important;
+        }
+
+        [data-theme="dark"] .bg-info.bg-opacity-10 {
+            background-color: rgba(13, 143, 176, 0.1) !important;
+        }
+
+        .border-info {
+            border-color: #0dcaf0 !important;
+        }
+
+        [data-theme="dark"] .border-info {
+            border-color: #0d8fb0 !important;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body data-theme="light">
+
+<div class="sidebar" id="sidebar">
+    <div class="p-3">
+        <h5 class="text-center mb-4">💰 Controle Real</h5>
+        <nav class="nav flex-column">
+            <a class="nav-link" href="{{ url_for('dashboard.home') }}">
+                <i class="bi bi-house-door me-2"></i>Dashboard
+            </a>
+            <a class="nav-link" href="{{ url_for('salary.salary') }}">
+                <i class="bi bi-cash-stack me-2"></i>Salário
+            </a>
+            <a class="nav-link" href="{{ url_for('finance.expenses') }}">
+                <i class="bi bi-receipt me-2"></i>Despesas
+            </a>
+            <a class="nav-link" href="{{ url_for('salary.goals') }}">
+                <i class="bi bi-trophy me-2"></i>Metas
+            </a>
+            <a class="nav-link" href="{{ url_for('dashboard.reports') }}">
+                <i class="bi bi-graph-up me-2"></i>Relatórios
+            </a>
+            <a class="nav-link" href="{{ url_for('dashboard.settings') }}">
+                <i class="bi bi-gear me-2"></i>Configurações
+            </a>
+        </nav>
+    </div>
+</div>
+
+<nav class="navbar navbar-light shadow-sm px-4">
+    <div class="container-fluid">
+        <button class="navbar-toggler me-2" type="button" id="sidebarToggle">
+            <i class="bi bi-list"></i>
+        </button>
+        <span class="navbar-brand mb-0 h5">💰 Controle Real</span>
+        <span class="navbar-text">
+            <i class="bi bi-person-circle"></i>
+        </span>
+    </div>
+</nav>
+
+<main class="container mt-4 main-content" id="mainContent">
+    <header class="page-header">
+        {% block page_header %}{% endblock %}
+    </header>
+
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="container mt-5 mb-4 text-muted text-center small">
+    Desenvolvido para controle financeiro.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Sidebar toggle
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('show');
+        mainContent.classList.toggle('shifted');
+    });
+
+    // Aplicar tema salvo ao carregar a página
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.body.setAttribute('data-theme', currentTheme);
+
+    // Smooth animations
+    document.querySelectorAll('.card').forEach(card => {
+        card.classList.add('fade-in');
+    });
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

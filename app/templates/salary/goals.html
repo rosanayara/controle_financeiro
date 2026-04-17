@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Minhas Metas - Controle Real{% endblock %}
+
+{% block page_header %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-trophy me-2"></i>Minhas Metas Financeiras
+        </h1>
+        <small class="text-muted">Acompanhe o progresso dos seus objetivos</small>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Estatísticas das Metas -->
+    <div class="col-12">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="card-title text-primary">{{ goals|length }}</h4>
+                        <p class="card-text">Total de Metas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="card-title text-success">R$ {{ "%.2f"|format(goals|sum(attribute='valor_atual')) }}</h4>
+                        <p class="card-text">Valor Total Economizado</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="card-title text-info">R$ {{ "%.2f"|format(goals|sum(attribute='valor_objetivo')) }}</h4>
+                        <p class="card-text">Valor Total Objetivo</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="card-title text-warning">{{ "%.1f"|format((goals|sum(attribute='valor_atual') / goals|sum(attribute='valor_objetivo')) * 100) }}%</h4>
+                        <p class="card-text">Progresso Geral</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Metas -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Metas Ativas</h5>
+                <a href="{{ url_for('salary.add_goal') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Meta
+                </a>
+            </div>
+            <div class="card-body">
+                {% if goals %}
+                <div class="row g-4">
+                    {% for goal in goals %}
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h6 class="card-title mb-0">{{ goal.nome }}</h6>
+                                    <span class="badge bg-primary">{{ "%.1f"|format(goal.progresso) }}%</span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar" role="progressbar"
+                                             data-progress="{{ goal.progresso }}"
+                                             aria-valuenow="{{ goal.progresso }}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <small class="text-muted">Atual</small>
+                                        <h6 class="text-success mb-0">R$ {{ "%.2f"|format(goal.valor_atual) }}</h6>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">Objetivo</small>
+                                        <h6 class="text-primary mb-0">R$ {{ "%.2f"|format(goal.valor_objetivo) }}</h6>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">Falta</small>
+                                        <h6 class="text-warning mb-0">R$ {{ "%.2f"|format(goal.valor_objetivo - goal.valor_atual) }}</h6>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <a href="{{ url_for('salary.edit_goal', goal_id=goal.id) }}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-pencil me-1"></i>Atualizar
+                                    </a>
+                                    {% if goal.progresso >= 100 %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Concluída
+                                    </span>
+                                    {% elif goal.progresso >= 75 %}
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-star-fill me-1"></i>Quase lá
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-clock me-1"></i>Em andamento
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-bullseye text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="text-muted mt-3">Nenhuma meta cadastrada</h4>
+                    <p class="text-muted">Crie suas primeiras metas para começar a acompanhar seus objetivos financeiros.</p>
+                    <a href="{{ url_for('salary.add_goal') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Criar Primeira Meta
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Definir largura das barras de progresso dinamicamente
+    document.querySelectorAll('.progress-bar').forEach(bar => {
+        const progress = bar.getAttribute('data-progress');
+        if (progress) {
+            bar.style.width = progress + '%';
+        }
+    });
+</script>
+{% endblock %}

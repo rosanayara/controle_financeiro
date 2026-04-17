@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios - Controle Real{% endblock %}
+
+{% block page_header %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-graph-up me-2"></i>Relatórios Financeiros
+        </h1>
+        <small class="text-muted">Análise completa dos seus dados financeiros</small>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+    <!-- Resumo Financeiro -->
+    {% if fatura %}
+        <div class="col-12">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <i class="bi bi-cash text-success me-2 fs-4"></i>
+                        </div>
+                        <h6 class="text-muted mb-1">Salário Líquido</h6>
+                        <h4 class="mb-0 text-success">R$ {{ "%.2f"|format(fatura.salario) }}</h4>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <i class="bi bi-credit-card text-danger me-2 fs-4"></i>
+                        </div>
+                        <h6 class="text-muted mb-1">Total de Despesas</h6>
+                        <h4 class="mb-0 text-danger">R$ {{ "%.2f"|format(fatura.total_gastos) }}</h4>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <i class="bi bi-wallet2 {{ 'text-success' if fatura.saldo > 0 else 'text-danger' }} me-2 fs-4"></i>
+                        </div>
+                        <h6 class="text-muted mb-1">Saldo</h6>
+                        <h4 class="mb-0 {{ 'text-success' if fatura.saldo > 0 else 'text-danger' }}">
+                            R$ {{ "%.2f"|format(fatura.saldo) }}
+                        </h4>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card p-3 text-center">
+                        <div class="d-flex align-items-center justify-content-center mb-2">
+                            <i class="bi bi-percent text-info me-2 fs-4"></i>
+                        </div>
+                        <h6 class="text-muted mb-1">% Gasto do Salário</h6>
+                        <h4 class="mb-0 text-info">{{ "%.1f"|format(fatura.percentual_gasto) }}%</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pontuação Financeira -->
+        {% if score is not none %}
+        <div class="col-md-6">
+            <div class="card p-4 text-center">
+                <div class="d-flex justify-content-center align-items-center mb-3">
+                    <i class="bi bi-trophy text-warning me-2 fs-3"></i>
+                    <h6 class="mb-0">Pontuação da Vida Financeira</h6>
+                </div>
+                <h1 class="display-4 mb-2">{{ score }}/100</h1>
+                <span class="badge bg-dark fs-6 mb-3">{{ classificacao }}</span>
+
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar {{ 'bg-success' if score >= 80 else 'bg-warning' if score >= 60 else 'bg-danger' }}"
+                         role="progressbar"
+                         style="width: {{ score }}%"
+                         aria-valuenow="{{ score }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                        {{ score }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Categoria Mais Gasta -->
+        <div class="col-md-6">
+            <div class="card p-4 text-center">
+                <div class="d-flex justify-content-center align-items-center mb-3">
+                    <i class="bi bi-exclamation-triangle text-danger me-2 fs-3"></i>
+                    <h6 class="mb-0">Onde Mais Gasta</h6>
+                </div>
+                {% if categoria_mais_gasta %}
+                <h4 class="mb-2">{{ categoria_mais_gasta }}</h4>
+                <h2 class="text-danger mb-0">R$ {{ "%.2f"|format(valor_mais_gasto) }}</h2>
+                <small class="text-muted">Valor total nesta categoria</small>
+                {% else %}
+                <h4 class="text-muted mb-2">Nenhuma despesa registrada</h4>
+                <p class="text-muted mb-0">Adicione despesas para ver a análise</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Gráfico de Gastos por Categoria -->
+        <div class="col-md-6">
+            <div class="card p-3">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-pie-chart text-primary me-2"></i>
+                    <h6 class="mb-0">Distribuição de Gastos por Categoria</h6>
+                </div>
+                <canvas id="graficoPizza" data-categorias="{{ fatura.gastos_por_categoria.keys() | list | tojson }}" data-valores="{{ fatura.gastos_por_categoria.values() | list | tojson }}"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfico de Evolução Mensal -->
+        {% if evolucao %}
+        <div class="col-md-6">
+            <div class="card p-3">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-graph-up-arrow text-info me-2"></i>
+                    <h6 class="mb-0">Comparação de Meses</h6>
+                </div>
+                <canvas id="graficoEvolucao" data-evolucao="{{ evolucao | tojson }}"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Insights e Recomendações -->
+        {% if insights %}
+        <div class="col-12">
+            <div class="card p-3">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-lightbulb text-warning me-2"></i>
+                    <h6 class="mb-0">Insights e Recomendações</h6>
+                </div>
+                <div class="row g-3">
+                    {% for insight in insights %}
+                    <div class="col-md-6">
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle me-2"></i>{{ insight }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    {% else %}
+        <div class="col-12">
+            <div class="card p-4 text-center">
+                <i class="bi bi-info-circle text-info fs-1 mb-3"></i>
+                <h5>Nenhum dado financeiro disponível</h5>
+                <p class="mb-3">Cadastre seu salário e adicione algumas despesas para gerar relatórios completos.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('salary.salary') }}" class="btn btn-primary">
+                        <i class="bi bi-cash-stack me-2"></i>Cadastrar Salário
+                    </a>
+                    <a href="{{ url_for('finance.add_expense') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Adicionar Despesa
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Gráfico de Pizza - Gastos por Categoria
+    const graficoPizzaEl = document.getElementById('graficoPizza');
+    if (graficoPizzaEl) {
+        const categorias = JSON.parse(graficoPizzaEl.dataset.categorias || '[]');
+        const valores = JSON.parse(graficoPizzaEl.dataset.valores || '[]');
+
+        new Chart(graficoPizzaEl, {
+            type: 'doughnut',
+            data: {
+                labels: categorias,
+                datasets: [{
+                    data: valores,
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return context.label + ': R$ ' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Evolução Mensal
+    const graficoEvolucaoEl = document.getElementById('graficoEvolucao');
+    if (graficoEvolucaoEl) {
+        const evolucao = JSON.parse(graficoEvolucaoEl.dataset.evolucao || '[]');
+
+        new Chart(graficoEvolucaoEl, {
+            type: 'line',
+            data: {
+                labels: evolucao.map(e => e.mes),
+                datasets: [
+                    {
+                        label: 'Gastos',
+                        data: evolucao.map(e => e.gastos),
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Saldo',
+                        data: evolucao.map(e => e.saldo),
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'R$ ' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

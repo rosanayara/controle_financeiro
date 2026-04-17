@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações - Controle Real{% endblock %}
+
+{% block page_header %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-gear me-2"></i>Configurações
+        </h1>
+        <small class="text-muted">Gerencie suas preferências</small>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card p-4 mb-4">
+            <h5 class="mb-4">
+                <i class="bi bi-paint-bucket me-2"></i>Preferências de Tema
+            </h5>
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="mb-1"><strong>Modo Escuro (Dark Mode)</strong></p>
+                    <small class="text-muted">Ative o modo escuro para melhor conforto visual</small>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input theme-toggle-switch" type="checkbox" id="darkModeSwitch" {% if 'dark' in request.cookies.get('theme', 'light') %}checked{% endif %}>
+                    <label class="form-check-label" for="darkModeSwitch">
+                        <span id="themeLabel">Desativado</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-4">
+            <h5 class="mb-4">
+                <i class="bi bi-door-open me-2"></i>Sessão
+            </h5>
+            <p class="mb-3">Fazer logout da sua conta encerra a sessão atual.</p>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair da Conta
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-4 bg-info bg-opacity-10 border-info">
+            <h6 class="mb-3">
+                <i class="bi bi-info-circle me-2"></i>Informações
+            </h6>
+            <small class="text-muted">
+                As suas preferências de tema são salvas automaticamente no navegador e persistem entre sessões.
+            </small>
+        </div>
+    </div>
+</div>
+
+<script>
+    const darkModeSwitch = document.getElementById('darkModeSwitch');
+    const themeLabel = document.getElementById('themeLabel');
+    const body = document.body;
+
+    // Inicializar estado do switch
+    function updateThemeLabel() {
+        themeLabel.textContent = body.getAttribute('data-theme') === 'dark' ? 'Ativado' : 'Desativado';
+        darkModeSwitch.checked = body.getAttribute('data-theme') === 'dark';
+    }
+
+    updateThemeLabel();
+
+    // Listener para mudanças no switch
+    darkModeSwitch.addEventListener('change', () => {
+        const newTheme = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeLabel();
+    });
+</script>
+
+{% endblock %}
