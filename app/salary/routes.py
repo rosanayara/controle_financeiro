@@ -11,19 +11,23 @@ salary_bp = Blueprint('salary', __name__)
 def salary():
     resultado = None
     metas = None
+    salario_atual = Salary.query.filter_by(user_id=current_user.id).first()
 
     if request.method == "POST":
         bruto = float(request.form["bruto"])
-
         resultado = calcular_salario(bruto)
 
-        novo = Salary(
-            user_id=current_user.id,
-            bruto=resultado["bruto"],
-            liquido=resultado["liquido"]
-        )
+        if salario_atual:
+            salario_atual.bruto = resultado["bruto"]
+            salario_atual.liquido = resultado["liquido"]
+        else:
+            salario_atual = Salary(
+                user_id=current_user.id,
+                bruto=resultado["bruto"],
+                liquido=resultado["liquido"]
+            )
+            db.session.add(salario_atual)
 
-        db.session.add(novo)
         db.session.commit()
 
     # Calcular progresso das metas
@@ -33,7 +37,25 @@ def salary():
         m.progresso = progresso_meta(m)
         metas.append(m)
 
-    return render_template("salary/index.html", resultado=resultado, metas=metas)
+    return render_template("salary/index.html", resultado=resultado, metas=metas, salario_atual=salario_atual)
+
+
+@salary_bp.route("/edit-salary", methods=["GET", "POST"])
+@login_required
+def edit_salary():
+    salario_atual = Salary.query.filter_by(user_id=current_user.id).first_or_404()
+
+    if request.method == "POST":
+        bruto = float(request.form["bruto"])
+        resultado = calcular_salario(bruto)
+
+        salario_atual.bruto = resultado["bruto"]
+        salario_atual.liquido = resultado["liquido"]
+        db.session.commit()
+
+        return redirect(url_for("salary.salary"))
+
+    return render_template("salary/edit_salary.html", salario=salario_atual)
 
 @salary_bp.route("/add-goal", methods=["GET", "POST"])
 @login_required
