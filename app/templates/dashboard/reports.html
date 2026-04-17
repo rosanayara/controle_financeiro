@@ -74,9 +74,10 @@
                 <span class="badge bg-dark fs-6 mb-3">{{ classificacao }}</span>
 
                 <div class="progress" style="height: 20px;">
-                    <div class="progress-bar {{ 'bg-success' if score >= 80 else 'bg-warning' if score >= 60 else 'bg-danger' }}"
+                    <div id="scoreProgress" class="progress-bar {{ 'bg-success' if score >= 80 else 'bg-warning' if score >= 60 else 'bg-danger' }}"
                          role="progressbar"
-                         style="width: {{ score }}%"
+                         style="width: 0%"
+                         data-score="{{ score }}"
                          aria-valuenow="{{ score }}"
                          aria-valuemin="0"
                          aria-valuemax="100">
@@ -266,5 +267,10 @@
             }
         });
     }
-</script>
+    const scoreProgressEl = document.getElementById('scoreProgress');
+    if (scoreProgressEl) {
+        const scoreValue = Number(scoreProgressEl.dataset.score || 0);
+        scoreProgressEl.style.width = `${scoreValue}%`;
+        scoreProgressEl.setAttribute('aria-valuenow', scoreValue);
+    }</script>
 {% endblock %}
